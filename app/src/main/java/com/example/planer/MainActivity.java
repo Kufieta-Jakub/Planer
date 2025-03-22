@@ -4,19 +4,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.viewpager2.widget.ViewPager2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +28,6 @@ public class MainActivity extends AppCompatActivity {
     ));
 
     ActivityResultLauncher<Intent> resultLauncher;
-    Button button;
     ArrayList<String> itemList;
     ArrayAdapter<String> adapter;
     ListView listView;
@@ -40,39 +37,33 @@ public class MainActivity extends AppCompatActivity {
     // SharedPreferences
     SharedPreferences sharedPreferences;
 
+    // Adapter do ViewPager2
+    private ViewPager2 viewPager;
+    private CircleAdapter circleAdapter;
+    private ArrayList<Integer> circleImages; // Lista obrazków dla kółek
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
         // Inicjacja SharedPreferences
         sharedPreferences = getSharedPreferences("PlannerPrefs", MODE_PRIVATE);
 
-        // Inicjacja resultLauncher
-        resultLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {  // Callback, when activity return result
-                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        String returnedText = result.getData().getStringExtra("result");
-                        if (returnedText != null) {
-                            String updatedText = hoursList.get(selectedPosition) + " " + returnedText;
-                            itemList.set(selectedPosition, updatedText);
-                            adapter.notifyDataSetChanged();
+        // Inicjacja ViewPager2
+        viewPager = findViewById(R.id.viewPager);
+        circleImages = new ArrayList<>();
+        // Przykładowe obrazy dla kółek (możesz dodać więcej)
+        circleImages.add(R.drawable.cloudy);
+        circleImages.add(R.drawable.calendar);
+        circleImages.add(R.drawable.cloudy);
 
-                            // Zapisz zaktualizowaną listę w SharedPreferences
-                            saveItemList();
-                        }
-                    }
-                }
-        );
+        // Ustawienie adaptera dla ViewPager2
+        circleAdapter = new CircleAdapter(circleImages);
+        viewPager.setAdapter(circleAdapter);
 
-        // listview setup
+
+        // ListView setup
         listView = findViewById(R.id.listview1);
         itemList = new ArrayList<>();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, itemList);
@@ -89,7 +80,17 @@ public class MainActivity extends AppCompatActivity {
             // Zapisz domyślną listę
             saveItemList();
         }
-
+        resultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        String resultFromOtherActivity = hoursList.get(selectedPosition)+ " " + result.getData().getStringExtra("result");
+                        itemList.set(selectedPosition,resultFromOtherActivity);
+                        adapter.notifyDataSetChanged();
+                        saveItemList();
+                    }
+                }
+        );
         // Ustawienie kliknięcia na item w liście
         listView.setOnItemClickListener((parent, view, position, id) -> {
             selectedPosition = position;
@@ -97,17 +98,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, HourPlanActivity.class);
             intent.putExtra("hour", hoursList.get(selectedPosition));
             resultLauncher.launch(intent);
-        });
-
-        //Setting up button
-        button = findViewById(R.id.button2);
-        button.setOnClickListener(v -> {
-            itemList.clear();
-            for (int i = 1; i <= 24; i++) {
-                itemList.add(i < 10 ? "0" + i + ":00" : i + ":00");
-            }
-            adapter.notifyDataSetChanged();
-            saveItemList();
         });
     }
 
