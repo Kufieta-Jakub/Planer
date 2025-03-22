@@ -43,7 +43,7 @@ public class HourPlanActivity extends AppCompatActivity {
             Intent intentReturn = new Intent();
             String text = String.valueOf(editText.getText());
             intentReturn.putExtra("result", text);
-            setResult(RESULT_OK, intentReturn);  // Ustawiamy wynik i zwracamy dane
+            setResult(RESULT_OK, intentReturn);
             finish();
         });
 

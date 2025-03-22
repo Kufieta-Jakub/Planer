@@ -100,6 +100,12 @@ public class MainActivity extends AppCompatActivity {
             resultLauncher.launch(intent);
         });
     }
+    @Override
+    public void startActivity(Intent intent) {
+        super.startActivity(intent);
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+    }
+
 
     // Metoda do zapisywania listy do SharedPreferences
     private void saveItemList() {

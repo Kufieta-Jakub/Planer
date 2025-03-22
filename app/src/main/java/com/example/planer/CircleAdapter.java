@@ -1,5 +1,6 @@
 package com.example.planer;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +12,7 @@ import java.util.List;
 public class CircleAdapter extends RecyclerView.Adapter<CircleAdapter.ViewHolder> {
     private List<Integer> images;
 
-    // Konstruktor przyjmujący listę obrazków
+    // Construcor get list of pictures
     public CircleAdapter(List<Integer> images) {
         this.images = images;
     }
@@ -34,11 +35,40 @@ public class CircleAdapter extends RecyclerView.Adapter<CircleAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         // Ustawianie obrazka dla elementu
         holder.image.setImageResource(images.get(position));
+
+        // Ustawienie kliknięcia na element
+        holder.itemView.setOnClickListener(v -> {
+            // Odbieramy id obrazka
+            int imageRes = images.get(position);
+
+            Intent intent = null;
+
+            // Sprawdzanie, który obrazek jest kliknięty i uruchamianie odpowiedniej aktywności
+            if (imageRes == R.drawable.calendar) {
+                intent = new Intent(holder.itemView.getContext(), CalendarActivity.class);
+            } else if (imageRes == R.drawable.cloudy) {
+                intent = new Intent(holder.itemView.getContext(), MainActivity.class);
+            }
+
+            // Jeśli mamy intent, uruchamiamy aktywność z animacją
+            if (intent != null) {
+                // Uruchamianie aktywności
+                holder.itemView.getContext().startActivity(intent);
+
+                // Jeżeli kontekst to MainActivity, to animacja przejścia będzie wykonywana w tej aktywności
+                if (holder.itemView.getContext() instanceof MainActivity) {
+                    ((MainActivity) holder.itemView.getContext()).overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+                } else if (holder.itemView.getContext() instanceof CalendarActivity) {
+                    ((CalendarActivity) holder.itemView.getContext()).overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+                }
+            }
+        });
     }
+
 
     @Override
     public int getItemCount() {
-        // Zwracamy liczbę elementów w adapterze
+        // Returning the size to adapter
         return images.size();
     }
 
@@ -47,7 +77,7 @@ public class CircleAdapter extends RecyclerView.Adapter<CircleAdapter.ViewHolder
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            image = itemView.findViewById(R.id.image); // Znalezienie ImageView w circle_item.xml
+            image = itemView.findViewById(R.id.image); // Finding ImageView in circle_item.xml
         }
     }
 }
