@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 
 import androidx.activity.EdgeToEdge;
@@ -18,9 +19,18 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
+    ArrayList<String> hoursList = new ArrayList<>(Arrays.asList(
+            "01:00", "02:00", "03:00", "04:00", "05:00", "06:00",
+            "07:00", "08:00", "09:00", "10:00", "11:00", "12:00",
+            "13:00", "14:00", "15:00", "16:00", "17:00", "18:00",
+            "19:00", "20:00", "21:00", "22:00", "23:00", "24:00"
+    ));
+
     ActivityResultLauncher<Intent> resultLauncher;
+    Button button;
     ArrayList<String> itemList;
     ArrayAdapter<String> adapter;
     ListView listView;
@@ -51,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         String returnedText = result.getData().getStringExtra("result");
                         if (returnedText != null) {
-                            String updatedText = itemList.get(selectedPosition) + " " + returnedText;
+                            String updatedText = hoursList.get(selectedPosition) + " " + returnedText;
                             itemList.set(selectedPosition, updatedText);
                             adapter.notifyDataSetChanged();
 
@@ -85,8 +95,19 @@ public class MainActivity extends AppCompatActivity {
             selectedPosition = position;
             selectedItem = itemList.get(position);
             Intent intent = new Intent(MainActivity.this, HourPlanActivity.class);
-            intent.putExtra("hour", selectedItem);
+            intent.putExtra("hour", hoursList.get(selectedPosition));
             resultLauncher.launch(intent);
+        });
+
+        //Setting up button
+        button = findViewById(R.id.button2);
+        button.setOnClickListener(v -> {
+            itemList.clear();
+            for (int i = 1; i <= 24; i++) {
+                itemList.add(i < 10 ? "0" + i + ":00" : i + ":00");
+            }
+            adapter.notifyDataSetChanged();
+            saveItemList();
         });
     }
 
